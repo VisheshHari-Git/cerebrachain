@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "zkp-cerebrachain"
+version = "0.1.0"
+description = "Federated zero-knowledge multi-modal MRI diagnostic network"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "flwr==1.39.0",
+    "torch>=2.2",
+    "numpy>=1.26",
+    "nibabel>=5.2",
+    "cryptography>=42",
+    "requests>=2.31",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["cerebrachain"]
+
+[tool.flwr.app]
+publisher = "cerebrachain"
+fab-include = ["cerebrachain/**/*.py", "README.md"]
+
+[tool.flwr.app.components]
+serverapp = "cerebrachain.server_app:app"
+clientapp = "cerebrachain.client_app:app"
+
+[tool.flwr.app.config]
+num-server-rounds = 5
+local-epochs = 3
+lr = 0.002
+batch-size = 16
+clip-norm = 2.0
+min-survivors = 2
+expected-hospitals = 4
+timeout = 3600
+trust-url = "http://127.0.0.1:8787"
+project-root = ""
