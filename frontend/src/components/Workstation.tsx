@@ -1,4 +1,5 @@
 import { SyntheticSegmentation } from './SyntheticSegmentation';
+import { RealMriUpload } from './RealMriUpload';
 import { useId, useState } from 'react';
 import { Box, Droplets, TriangleAlert } from 'lucide-react';
 import { Button, DemoLabel, Metric, Section, SectionHeading } from './ui';
@@ -31,6 +32,7 @@ export function Workstation() {
   const [opacity, setOpacity] = useState(85);
   return <Section id="workstation">
     <SectionHeading eyebrow="MULTI-PLANAR RECONSTRUCTION (MPR)" title="Diagnostic Volumetric Workstation" icon={Box}><div role="group" aria-label="MRI modality" className="modality-tabs">{modalities.map((label, index) => <Button key={label} tone={modality === index ? 'primary' : 'default'} aria-pressed={modality === index} onClick={() => setModality(index)}>{label}</Button>)}</div></SectionHeading>
+    <RealMriUpload />
     <div className="flex flex-wrap gap-3 items-center"><DemoLabel>SCHEMATIC MRI PANES</DemoLabel><p className="text-xs text-on-surface-variant">Illustrations from the Stitch design · No scan loaded · No AI inference performed</p></div>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">{planes.map((plane, i) => <SlicePane key={plane} plane={i} opacity={opacity} modality={modality} />)}</div>
     <SyntheticSegmentation opacity={opacity} />
