@@ -17,6 +17,7 @@
     "@fontsource/jetbrains-mono": "^5.2.0",
     "@fontsource/space-grotesk": "^5.2.0",
     "@react-three/fiber": "^9.4.0",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.468.0",
     "motion": "^12.23.0",
     "nifti-reader-js": "^0.8.0",

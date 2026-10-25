@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { readNiftiVolume, type NiftiVolume } from '../lib/niftiVolume';
+import { downloadAnalysisReport } from '../lib/analysisReport';
 
 type PlaneAxis = 0 | 1 | 2;
 
@@ -238,7 +239,7 @@ export function RealMriViewer({
     };
   }, [mri, mask]);
 
-  const window = useMemo(
+  const intensityWindow = useMemo(
     () => volumes ? calculateWindow(volumes.mri) : [0, 1] as [number, number],
     [volumes]
   );
@@ -362,6 +363,30 @@ export function RealMriViewer({
             ))}
           </div>
 
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                downloadAnalysisReport({
+                  dimensions: volumes.mask.dims,
+                  voxelVolumeMm3: tumorStats.voxelVolumeMm3,
+                  wholeTumor: tumorStats.wholeTumor,
+                  tumorCore: tumorStats.tumorCore,
+                  enhancingTumor: tumorStats.enhancingTumor,
+                });
+              } catch (err) {
+                window.alert(
+                  err instanceof Error
+                    ? err.message
+                    : 'Unable to generate PDF report.'
+                );
+              }
+            }}
+            className="rounded-lg border border-cyan-500/40 bg-cyan-700 px-5 py-3 font-semibold text-white hover:bg-cyan-600"
+          >
+            Download AI Analysis Report (PDF)
+          </button>
+
           <p className="text-xs text-on-surface-variant">
             Volumes are calculated from the AI-predicted segmentation.
             Measurements are for research use only.
@@ -394,7 +419,7 @@ export function RealMriViewer({
                 axis={plane.axis}
                 slice={slice}
                 opacity={opacity}
-                window={window}
+                window={intensityWindow}
               />
 
               <input
