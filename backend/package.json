@@ -1,0 +1,25 @@
+{
+  "name": "zkp-cerebrachain",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Federated zero-knowledge MRI diagnostic network: ZK prover, trust layer, smart contracts and dashboard",
+  "type": "commonjs",
+  "scripts": {
+    "zk:setup": "bash scripts/zk_setup.sh",
+    "chain": "hardhat node --hostname 127.0.0.1 --port 8545",
+    "contracts:compile": "node trust-layer/scripts/compile.js",
+    "contracts:deploy": "node trust-layer/scripts/deploy.js",
+    "trust-layer": "node trust-layer/src/server.js",
+    "test": "python -m pytest -q tests/test_core.py"
+  },
+  "dependencies": {
+    "circomlib": "2.0.5",
+    "ethers": "^6.17.0",
+    "express": "^5.2.1",
+    "snarkjs": "0.7.6",
+    "solc": "^0.8.30"
+  },
+  "devDependencies": {
+    "hardhat": "^2.29.1"
+  }
+}

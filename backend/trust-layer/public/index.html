@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CerebraChain Dashboard</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --ink: #1d2433; --muted: #667085; --line: #e4e7ec;
+    --ok: #127a46; --ok-bg: #e5f5ec; --bad: #b42318; --bad-bg: #fdecea; --warn: #93600b; --warn-bg: #fdf3dc;
+    --info: #1f4e9c; --info-bg: #e8effb; --accent: #1f4e9c;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { background: var(--card); border-bottom: 1px solid var(--line); padding: 14px 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; }
+  header h1 { font-size: 18px; margin: 0; }
+  header .sub { color: var(--muted); }
+  main { max-width: 1200px; margin: 0 auto; padding: 18px 16px 40px; display: grid; gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; overflow-x: auto; }
+  .card h2 { font-size: 14px; margin: 0 0 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; white-space: nowrap; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  td.wrap { white-space: normal; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+  .badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; }
+  .accepted, .updated { background: var(--ok-bg); color: var(--ok); }
+  .rejected, .aborted { background: var(--bad-bg); color: var(--bad); }
+  .missing, .invited { background: var(--warn-bg); color: var(--warn); }
+  .committed, .commit, .prove { background: var(--info-bg); color: var(--info); }
+  .kv { display: grid; grid-template-columns: max-content 1fr; gap: 2px 14px; }
+  .kv div:nth-child(odd) { color: var(--muted); }
+  .round { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 12px; }
+  .round:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+  .round h3 { margin: 0 0 6px; font-size: 15px; display: flex; gap: 10px; align-items: center; }
+  .note { color: var(--muted); margin: 4px 0 8px; }
+  .log { max-height: 260px; overflow-y: auto; }
+  .log div { padding: 2px 0; border-bottom: 1px dashed var(--line); }
+  .log .warn { color: var(--warn); } .log .error { color: var(--bad); }
+  svg text { font: 11px system-ui, sans-serif; fill: var(--muted); }
+  .legend span { margin-right: 14px; font-size: 12px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+  .empty { color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>ZKP-CerebraChain</h1>
+  <span class="sub">Federated zero-knowledge MRI diagnostic network · live trust-layer view</span>
+</header>
+<main>
+  <div class="grid2">
+    <section class="card"><h2>Trust layer</h2><div id="infra" class="kv"></div></section>
+    <section class="card"><h2>Validation Dice (whole tumour)</h2><div id="chart"></div><div id="legend" class="legend"></div></section>
+  </div>
+  <section class="card"><h2>Hospitals</h2><div id="hospitals"></div></section>
+  <section class="card"><h2>Rounds</h2><div id="rounds"></div></section>
+  <section class="card"><h2>Event log</h2><div id="log" class="log mono"></div></section>
+</main>
+<script>
+const COLORS = ["#1f4e9c", "#127a46", "#b26b00", "#9b2c8f", "#4b5563", "#0e7490"];
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const short = (h, n = 10) => (h ? esc(String(h).slice(0, n)) + "…" : "—");
+const badge = (s) => `<span class="badge ${esc(s)}">${esc(s)}</span>`;
+
+function infra(st) {
+  const c = st.chain || {}, z = st.zk || {};
+  const rows = [
+    ["Blockchain", c.enabled ? `chain ${c.chainId} · ${esc(c.rpcUrl)}` : `off (${esc(c.error || "")})`],
+    ["Registry contract", c.enabled ? `<span class="mono">${esc(c.registry)}</span>` : "—"],
+    ["Groth16 verifier", c.enabled ? `<span class="mono">${esc(c.verifier)}</span>` : "—"],
+    ["ZK circuit", z.chunkSize ? `UpdateChunk(${z.chunkSize}) · ${Number(z.constraints).toLocaleString()} constraints` : "—"],
+    ["Trusted setup", esc(z.ptauSource || "—")],
+    ["Rounds", Object.keys(st.rounds || {}).length],
+  ];
+  $("infra").innerHTML = rows.map(([k, v]) => `<div>${k}</div><div>${v}</div>`).join("");
+}
+
+function hospitals(st) {
+  const hs = Object.values(st.hospitals || {});
+  if (!hs.length) return ($("hospitals").innerHTML = `<p class="empty">No hospitals registered yet.</p>`);
+  const lastR = Object.values(st.rounds || {}).sort((a, b) => b.round - a.round)[0];
+  $("hospitals").innerHTML = `<table><tr><th>Hospital</th><th>ID</th><th>X25519 key</th><th>Train slices</th><th>Device</th><th>Latest round</th><th>Registration tx</th></tr>` +
+    hs.map((h) => {
+      const s = lastR && lastR.submissions[h.id];
+      return `<tr><td>${esc(h.name)}</td><td>${h.id}</td><td class="mono">${short(h.pubkey, 16)}</td><td>${h.numSamples ?? "—"}</td>
+      <td>${esc(h.device || "—")}</td><td>${s ? badge(s.status) : "—"}</td><td class="mono">${h.tx ? short(h.tx.txHash, 14) : "—"}</td></tr>`;
+    }).join("") + `</table>`;
+}
+
+function chart(st) {
+  const hs = Object.values(st.hospitals || {});
+  const rounds = Object.values(st.rounds || {}).sort((a, b) => a.round - b.round);
+  const series = hs.map((h) => {
+    const pts = [];
+    const init = (st.initialMetrics || {})[h.id];
+    if (init) pts.push([0, init.dice]);
+    for (const r of rounds) { const m = (r.metrics || {})[h.id]; if (m) pts.push([r.round, m.dice]); }
+    return { name: h.name, pts };
+  });
+  const base = st.roundBase || 0;
+  for (const s of series) s.pts = s.pts.map(([r, v]) => [r === 0 ? 0 : r - base, v]);
+  const maxR = Math.max(1, ...rounds.map((r) => r.round - base));
+  const W = 520, H = 200, L = 34, B = 22, T = 8, Rr = 10;
+  const x = (r) => L + (r / maxR) * (W - L - Rr), y = (v) => T + (1 - v) * (H - T - B);
+  let svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Dice per round">`;
+  for (const v of [0, 0.25, 0.5, 0.75, 1]) svg += `<line x1="${L}" x2="${W - Rr}" y1="${y(v)}" y2="${y(v)}" stroke="#e4e7ec"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+  for (let r = 0; r <= maxR; r++) svg += `<text x="${x(r)}" y="${H - 6}" text-anchor="middle">${r === 0 ? 0 : r + base}</text>`;
+  series.forEach((s, i) => {
+    if (!s.pts.length) return;
+    const c = COLORS[i % COLORS.length];
+    svg += `<polyline fill="none" stroke="${c}" stroke-width="2" points="${s.pts.map(([r, v]) => `${x(r)},${y(v)}`).join(" ")}"/>`;
+    for (const [r, v] of s.pts) svg += `<circle cx="${x(r)}" cy="${y(v)}" r="3" fill="${c}"><title>${esc(s.name)} round ${r}: ${v.toFixed(3)}</title></circle>`;
+  });
+  $("chart").innerHTML = svg + `</svg>`;
+  $("legend").innerHTML = series.map((s, i) => `<span><i style="background:${COLORS[i % COLORS.length]}"></i>${esc(s.name)}</span>`).join("") +
+    `<span class="empty">x: round (0 = before training)</span>`;
+}
+
+function rounds(st) {
+  const rs = Object.values(st.rounds || {}).sort((a, b) => b.round - a.round);
+  if (!rs.length) return ($("rounds").innerHTML = `<p class="empty">Waiting for the aggregator to open round 1…</p>`);
+  $("rounds").innerHTML = rs.map((r) => {
+    const status = r.outcome || r.phase;
+    const agg = r.aggregateCheck;
+    const subs = r.participants.map((id) => r.submissions[id]);
+    return `<div class="round">
+      <h3>Round ${r.round} ${badge(status)}</h3>
+      <div class="note">${esc(r.note || "")}</div>
+      <div class="kv" style="margin-bottom:8px">
+        <div>Global model in</div><div class="mono">${short(r.globalModelHash, 18)}</div>
+        <div>Global model out</div><div class="mono">${r.newGlobalModelHash ? short(r.newGlobalModelHash, 18) : "—"}${r.modelCid ? ` · <a href="/ipfs/${esc(r.modelCid)}">${short(r.modelCid, 20)}</a>` : ""}</div>
+        <div>Norm bound Σq²</div><div>${Number(r.normBound).toLocaleString()} (clip ${r.clipNorm}, scale ${Number(r.scale).toExponential(2)})</div>
+        <div>Challenge seed</div><div class="mono">${short(r.seed, 18)}</div>
+        <div>Aggregate check</div><div>${agg ? (agg.passed ? `<span class="badge accepted">passed</span> ${agg.chunks} polynomial identities` : `<span class="badge rejected">failed</span> ${esc(agg.detail || "")}`) : "—"}</div>
+      </div>
+      <table><tr><th>Hospital</th><th>Status</th><th>Σq² (bound ${Number(r.normBound).toLocaleString()})</th><th>Prove</th><th>Verify</th><th>Off/on-chain</th><th>Proof tx</th><th>Proof bundle (CID)</th><th>Dice</th><th>Reason</th></tr>
+      ${subs.map((s) => `<tr><td>${esc(s.name)}</td><td>${badge(s.status)}</td><td>${s.sumSq ? Number(s.sumSq).toLocaleString() : "—"}</td>
+        <td>${s.proveSeconds != null ? s.proveSeconds + " s" : "—"}</td><td>${s.verifyMs != null ? s.verifyMs + " ms" : "—"}</td>
+        <td>${s.offchain ? esc(s.offchain) + " / " + esc(s.onchain || "—") : "—"}</td>
+        <td class="mono">${s.proofTx ? short(s.proofTx.txHash, 12) + ` <span class="empty">${(s.proofTx.gasUsed / 1e6).toFixed(2)}M gas</span>` : "—"}</td>
+        <td class="mono">${s.proofCid ? `<a href="/ipfs/${esc(s.proofCid)}">${short(s.proofCid, 16)}</a>` : "—"}</td>
+        <td>${r.metrics && r.metrics[s.hospitalId] ? r.metrics[s.hospitalId].dice.toFixed(3) : "—"}</td>
+        <td class="wrap">${esc(s.reason || "")}</td></tr>`).join("")}
+      </table></div>`;
+  }).join("");
+}
+
+function events(st) {
+  $("log").innerHTML = (st.events || []).slice(-80).reverse()
+    .map((e) => `<div class="${esc(e.level)}">${esc(e.t.slice(11, 19))}  ${esc(e.msg)}</div>`).join("");
+}
+
+async function refresh() {
+  try {
+    const st = await (await fetch("/api/state")).json();
+    infra(st); hospitals(st); chart(st); rounds(st); events(st);
+  } catch (e) { /* trust layer restarting */ }
+}
+refresh();
+setInterval(refresh, 2000);
+</script>
+</body>
+</html>
