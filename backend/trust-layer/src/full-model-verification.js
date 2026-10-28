@@ -9,7 +9,7 @@ const DIR = path.join(
   ROOT, "runs", "3d_fl_smoke", "zk_full_anchor_stage_v1"
 );
 
-const CONTRACT = "0x21df544947ba3e8b3c32561399e88b52dc8b2823";
+
 const OWNER = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266";
 
 const EXPECTED_ROOT =
@@ -115,8 +115,9 @@ async function getFullModelVerification() {
   // Never read private witnesses, salts, model deltas or keys.
 
   const manifest = readJSON("proofset_merkle_v1.json");
-  const deployment = readJSON("deployment_local31337_v1.json");
-  const anchoring = readJSON("anchoring_local31337_v1.json");
+  const deployment = readJSON(process.env.CEREBRACHAIN_RECOVERY_DEPLOYMENT || "deployment_local31337_recovery_v2.json");
+  const anchoring = readJSON(process.env.CEREBRACHAIN_RECOVERY_ANCHORING || "anchoring_local31337_recovery_v2.json");
+  const CONTRACT = deployment.contractAddress;
 
   const {manifestSha256, ...unsigned} = manifest;
 
