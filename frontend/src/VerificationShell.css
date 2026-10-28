@@ -1,0 +1,136 @@
+.cc-live-launcher {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 2147482000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 13px 19px;
+  background: linear-gradient(120deg, #087cba, #2750b0);
+  color: #fff;
+  border: 1px solid rgba(155, 229, 255, 0.4);
+  border-radius: 30px;
+  box-shadow: 0 8px 28px rgba(0, 40, 100, 0.4);
+  font: 600 14px/1.4 inherit;
+  cursor: pointer;
+}
+
+.cc-live-launcher:hover {
+  filter: brightness(1.15);
+}
+
+.cc-live-launcher:focus-visible,
+.cc-live-panel__close:focus-visible {
+  outline: 3px solid #9ae8ff;
+  outline-offset: 3px;
+}
+
+.cc-live-launcher__icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.cc-live-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147482010;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(3, 8, 20, 0.85);
+  backdrop-filter: blur(8px);
+}
+
+.cc-live-panel {
+  width: min(1180px, 100%);
+  max-height: 94vh;
+  overflow-y: auto;
+  background: #091323;
+  border: 1px solid rgba(130, 190, 235, 0.35);
+  border-radius: 20px;
+  box-shadow: 0 24px 90px rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+
+.cc-live-panel__toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 14px 24px;
+  background: rgba(9, 19, 35, 0.98);
+  border-bottom: 1px solid rgba(140, 180, 220, 0.18);
+}
+
+.cc-live-panel__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #cce9ff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cc-live-panel__indicator {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  background: #59e6b3;
+  box-shadow: 0 0 12px rgba(89, 230, 179, 0.6);
+}
+
+.cc-live-panel__close {
+  padding: 9px 15px;
+  color: #eaf5ff;
+  background: #20344e;
+  border: 1px solid #37516e;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.cc-live-panel__content {
+  padding: 0 14px 14px;
+}
+
+.cc-live-panel__content .cc-verify {
+  margin: 12px auto;
+}
+
+@media (max-width: 600px) {
+  .cc-live-launcher {
+    right: 12px;
+    bottom: 12px;
+    padding: 12px 15px;
+    font-size: 12px;
+  }
+
+  .cc-live-backdrop {
+    padding: 6px;
+  }
+
+  .cc-live-panel {
+    max-height: 98vh;
+    border-radius: 12px;
+  }
+
+  .cc-live-panel__toolbar {
+    padding: 12px;
+  }
+
+  .cc-live-panel__content {
+    padding: 0 4px 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-live-backdrop {
+    backdrop-filter: none;
+  }
+}

@@ -14,6 +14,12 @@ from cerebrachain.unet3d.demo_api import router as demo_router
 
 app.include_router(demo_router)
 
+# Real MRI inference using Roshan's trained 3D U-Net
+from cerebrachain.unet3d.real_api import router as real_router
+
+app.include_router(real_router)
+
+
 @app.get("/health")
 def health():
     """Report MRI API status."""

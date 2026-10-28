@@ -1,0 +1,43 @@
+
+
+# Generated dependencies and builds
+**/node_modules/
+**/.venv/
+**/venv/
+**/__pycache__/
+**/.pytest_cache/
+**/dist/
+**/.vite/
+**/.cleanup-backups/
+
+# Credentials and private artifacts
+**/.env
+**/.env.*
+!**/.env.example
+**/*.pem
+**/*.key
+**/*.wtns
+**/*.zkey
+**/*.ptau
+**/*witness*
+**/*private_key*
+**/*secret_key*
+
+# Local datasets, experiments and model checkpoints
+backend/data/
+backend/data_*/
+backend/runs/
+backend/storage/
+backend/zk/build/
+**/*.nii
+**/*.nii.gz
+**/*.dcm
+**/*.dicom
+**/*.pth
+**/*.pt
+**/*.ckpt
+**/*.safetensors
+
+# Local blockchain state
+**/cache/
+**/artifacts/build-info/

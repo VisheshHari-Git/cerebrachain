@@ -92,6 +92,51 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 app.get("/api/health", (req, res) => res.json({ ok: true, chain: state.chain, zk: zkMeta }));
+
+// Full-model offline proof-set and live local blockchain verification.
+// Read-only, local research-demo endpoint.
+app.get("/api/full-model/verification", async (_req, res) => {
+  res.set("Cache-Control", "no-store");
+
+  try {
+    const {getFullModelVerification} =
+      require("./full-model-verification");
+
+    const result = await getFullModelVerification();
+
+    res.json(result);
+  } catch (error) {
+    console.error("[full-model-verification]", error.message);
+
+    res.status(503).json({
+      status: "unavailable",
+      blockchainVerifiedLive: false,
+      error: "Live proof-set or blockchain verification unavailable"
+    });
+  }
+});
+
+// Read-only hospital-wise full-model verification.
+app.get("/api/full-model/hospitals", async (_req, res) => {
+  res.set("Cache-Control", "no-store");
+
+  try {
+    const {getHospitalVerification} =
+      require("./hospital-verification");
+
+    const result = await getHospitalVerification();
+    res.json(result);
+  } catch (error) {
+    console.error("[hospital-verification]", error.message);
+
+    res.status(503).json({
+      status: "unavailable",
+      blockchainVerifiedLive: false,
+      error: "Hospital verification temporarily unavailable"
+    });
+  }
+});
+
 app.get("/api/state", (req, res) => res.json(state));
 app.get("/api/rounds/:r", wrap(async (req, res) => {
   const rd = getRound(req.params.r);
